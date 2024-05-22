@@ -4,9 +4,9 @@ from enum import Enum
 
 
 class Gender(str, Enum):
-    male = "male"
-    female = "female"
-    other = "other"
+    male = "Male"
+    female = "Female"
+    other = "Other"
 
 
 class UserInput(BaseModel):
@@ -43,8 +43,6 @@ class UserAppointment(BaseModel):
 class LocationAdd(BaseModel):
     Address: str
     city: str
-    state: str
-    pincode: int
 
 
 class DocRegister(BaseModel):
@@ -60,6 +58,7 @@ class DocRegister(BaseModel):
 
 class Doctor(DocRegister):
     id: Optional[str] = Field(alias="_id")
+    rating: str
     timeSlots: Optional[list[TimeSlot]]
 
 
