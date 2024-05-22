@@ -26,10 +26,11 @@ app.add_middleware(
 
 
 @app.post("/gemini_data")
-async def root(user_input: UserInput):
-        response = gemini_response(user_input.Text)
-        # response_dict = json.loads(response_value)
-        return response
-
-
-
+async def root(user_input: UserInput) -> str | list[dict]:
+    response = gemini_response(user_input.Text)
+    try:
+        response_dict = json.loads(response)
+        return response_dict
+    except JSONDecodeError:
+        pass
+    return response

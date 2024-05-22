@@ -18,19 +18,19 @@ generation_config = {
 safety_settings = [
     {
         "category": "HARM_CATEGORY_HARASSMENT",
-        "threshold": "BLOCK_MEDIUM_AND_ABOVE",
+        "threshold": "BLOCK_NONE",
     },
     {
         "category": "HARM_CATEGORY_HATE_SPEECH",
-        "threshold": "BLOCK_MEDIUM_AND_ABOVE",
+        "threshold": "BLOCK_NONE",
     },
     {
         "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-        "threshold": "BLOCK_MEDIUM_AND_ABOVE",
+        "threshold": "BLOCK_NONE",
     },
     {
         "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
-        "threshold": "BLOCK_MEDIUM_AND_ABOVE",
+        "threshold": "BLOCK_NONE",
     },
 ]
 
@@ -53,16 +53,18 @@ chat_session = model.start_chat(
                 "If user  talks casual about healthcare give him precise and very short answer."
                 "If user gives \"<Location>\" or \"<practice>\" of doctor like physician or "
                 "or any combination of these context ."
-                "Provide the details of at least 5 real doctors if no of doctors not specified by user strictly in "
-                "below"
-                "format no other format."
-                "Details:"
-                "\"Name\":\"<DOCTOR_NAME>\"\n"
-                "\"Specialization\":\"<DOCTOR_SPECIALIZATION>\"\n"
-                "\"Address\":\"<DOCTOR_ADDRESS>\"\n"
-                "\"Rating\":\"<DOCTOR_RATING>\""
-                "\"Experience\":\"<DOCTOR_EXPERIENCE>\"\n"
-                "\"Fee\":\"<DOCTOR_FEE>\"\n"
+                "VERY IMPORTANT:Provide the details of at least 5 \"real doctors\" if no of doctors not specified by user strictly in "
+                "below JSON format no other format",
+                "["
+                "{"
+                "\"name\":\"<DOCTOR_NAME>\"\n"
+                "\"specialization\":\"<DOCTOR_SPECIALIZATION>\"\n"
+                "\"address\":\"<DOCTOR_ADDRESS>\"\n"
+                "\"rating\":\"<DOCTOR_RATING>\""
+                "\"experience\":\"<DOCTOR_EXPERIENCE>\"\n"
+                "\"fee\":\"<DOCTOR_FEE>\"\n"
+                "}"
+                "]"
                 "If user says to book an appointment with some doctor that you provided "
                 "First confirm the doctor and ask user following details:"
                 "details:"
