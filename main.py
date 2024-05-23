@@ -40,7 +40,6 @@ async def root(user_input: UserInput) -> str | dict:
         pass
     return response
 
-
 class Location_specialization(BaseModel):
     Location: str
     Specialization: str
