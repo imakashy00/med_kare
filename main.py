@@ -41,7 +41,6 @@ async def root(user_input: UserInput) -> str | dict:
     return response
 
 
-
 class Location_specialization(BaseModel):
     Location: str
     Specialization: str
@@ -50,10 +49,10 @@ class Location_specialization(BaseModel):
 @app.post("/match_doctor")
 async def match_doctor(details: Location_specialization):
     try:
-
+        print(details)
         doctors_list = db.get_collection('doctors').find({
-            "Address.City": details.Location,# Use a dictionary for filter criteria
-            # "Specialization": details.Specialization,
+            "Address.City": details.Location,  # Use a dictionary for filter criteria
+            "Specialization": details.Specialization,
         })
         print("search done!")
         matched_doctors = list(doctors_list)  # Convert cursor to a list of matched doctors
@@ -64,5 +63,3 @@ async def match_doctor(details: Location_specialization):
         return matched_doctors_str  # Return the list of matched doctors
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
-
-
