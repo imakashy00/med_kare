@@ -1,21 +1,10 @@
 from pydantic import BaseModel, Field
 from typing import Optional
-from enum import Enum
-
-
-class Gender(str, Enum):
-    male = "Male"
-    female = "Female"
-    other = "Other"
+from bson import ObjectId
 
 
 class UserInput(BaseModel):
     Text: Optional[str] = None
-
-
-class Name(BaseModel):
-    First: str
-    Last: str
 
 
 class Contact(BaseModel):
@@ -29,42 +18,32 @@ class ImageMetaData(BaseModel):
 
 
 class TimeSlot(BaseModel):
-    Day: str
-    start: str
-    end: str
+    Time: str
     isAvailable: bool
 
 
-class UserAppointment(BaseModel):
-    patientId: str
-    date: str
+class Dateslots(BaseModel):
+    Date: str
+    TimeSlots: list[TimeSlot]
 
 
-class LocationAdd(BaseModel):
-    Address: str
-    city: str
+class Location(BaseModel):
+    Street: str
+    City: str
 
 
 class DocRegister(BaseModel):
-    Name: Name
+    Name: str
     Contact: Contact
-    Location: LocationAdd
+    Address: Location
     Specialization: str
-    qualification: list[str]
-    gender: Gender
-    experience: int
-    fee: int
+    Experience: str
+    Fee: str
 
 
 class Doctor(DocRegister):
-    id: Optional[str] = Field(alias="_id")
-    rating: str
-    timeSlots: Optional[list[TimeSlot]]
+    Rating: str
+    TimeSlot: Optional[list[Dateslots]]
 
 
-class User(BaseModel):
-    Name: Name
-    Contact: Contact
-    Age: int
-    Gender: Gender
 

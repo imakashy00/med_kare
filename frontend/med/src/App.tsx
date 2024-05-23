@@ -1,57 +1,68 @@
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
 
-function App() {
-    const [messages, setMessages] = useState<{ text: string | JSX.Element; sender: string }[]>([]);
+interface Message {
+    text: string | JSX.Element;
+    sender: string;
+}
+
+interface DoctorDetails {
+    name: string;
+    specialization: string;
+    address: string;
+    rating: number;
+    experience: number;
+}
+
+interface TimeSlot {
+    date: string;
+    time: string;
+    is_available: boolean;
+}
+
+interface Doctor {
+    id: string;
+    name: string;
+    available_timeslots: TimeSlot[];
+}
+
+const App: React.FC = () => {
+    const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
     const messageContainerRef = useRef<HTMLDivElement>(null);
 
     const handleSendMessage = async () => {
         if (input.trim()) {
             const userInput = input;
-            setMessages((prevMessages) => [...prevMessages, { text: userInput, sender: 'user' }]);
+            setMessages(prevMessages => [...prevMessages, { text: userInput, sender: 'user' }]);
             setInput('');
 
             try {
                 const response = await axios.post('http://127.0.0.1:8000/gemini_data', {
                     Text: userInput
                 });
+
                 const responseData = response.data;
-
-                if (Array.isArray(responseData)) {
-                    const doctorInfoMessage = (
-                        <div className='flex px-5 flex-col m-1'>
-                            <div className=' flex w-[950px] justify-evenly'>
-                                <strong>Name:</strong><strong>Specialization:</strong><strong>Address/Location:</strong><strong>Rating:</strong><strong>Experience:</strong><strong>Fees:</strong>
-                            </div>
-                            {responseData.map((doctor: any, index: any) => (
-                                <div className=' w-[950px]'>
-                                    <div key={index} className="p-3 flex justify-evenly rounded-lg bg-gray-100 my-2">
-                                        <div>{doctor.name}</div>
-                                        <div>{doctor.specialization}</div>
-                                        <div className='flex max-w-[200px]'>{doctor.address}</div>
-                                        <div>{doctor.rating}</div>
-                                        <div>{doctor.experience}</div>
-                                        <div>{doctor.fee}</div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    );
-
-                    setMessages((prevMessages) => [
+                console.log(responseData);
+                const matchResponse = await axios.post('http://127.0.0.1:8000/match_doctor', responseData);
+                const matchedDoctor = matchResponse.data;
+                console.log(matchedDoctor);
+                if (matchedDoctor.length!==0){
+                    console.log(matchedDoctor);
+                    setMessages(prevMessages => [
                         ...prevMessages,
-                        {text: doctorInfoMessage, sender: 'gemini'}
+                        { text: matchedDoctor, sender: 'gemini' }
                     ]);
-                } else {
-                    setMessages((prevMessages) => [
+                }
+                else {
+                    setMessages(prevMessages => [
                         ...prevMessages,
                         { text: responseData, sender: 'gemini' }
                     ]);
                 }
             } catch (error) {
-                console.error('Error fetching data from backend:', error);
+                console.error('Error fetching data:', error);
             }
         }
     };
@@ -63,23 +74,12 @@ function App() {
     }, [messages]);
 
     return (
-        <div className="flex flex-col h-[900px] rounded-2xl bg-gray-200">
+        <div className="flex flex-col h-screen bg-gray-200">
             <div className="flex-grow p-4 overflow-auto" ref={messageContainerRef}>
                 <div className="max-w-5xl mx-auto">
                     {messages.map((message, index) => (
-                        <div
-                            key={index}
-                            className={`flex flex-col  my-2 ${
-                                message.sender === 'user' ? 'justify-end' : 'justify-start'
-                            }`}
-                        >
-                            <div
-                                className={` flex flex-col p-3 max-w-3/4 rounded-lg ${
-                                    message.sender === 'user'
-                                        ? 'bg-blue-500 text-white self-end'
-                                        : 'bg-gray-100 text-black self-start'
-                                }`}
-                            >
+                        <div key={index} className={`flex my-2 ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                            <div className={`p-3 rounded-lg ${message.sender === 'user' ? 'bg-blue-500 text-white self-end' : 'bg-gray-100 text-black self-start'}`}>
                                 {message.text}
                             </div>
                         </div>
@@ -92,8 +92,8 @@ function App() {
                         type="text"
                         className="flex-grow p-2 border rounded-lg focus:outline-none focus:border-blue-500"
                         value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        onKeyDown={(e) => {
+                        onChange={e => setInput(e.target.value)}
+                        onKeyDown={e => {
                             if (e.key === 'Enter') {
                                 handleSendMessage();
                             }
@@ -109,6 +109,6 @@ function App() {
             </div>
         </div>
     );
-}
+};
 
 export default App;
