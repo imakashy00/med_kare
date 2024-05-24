@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
 from typing import Optional
 from bson import ObjectId
 
@@ -46,4 +46,10 @@ class Doctor(DocRegister):
     TimeSlot: Optional[list[Dateslots]]
 
 
-
+class EmailData(BaseModel):
+    username: str
+    userEmail: EmailStr
+    doctorName: str
+    doctorEmail: EmailStr
+    date: str
+    time: str

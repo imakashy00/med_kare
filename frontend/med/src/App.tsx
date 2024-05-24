@@ -7,30 +7,24 @@ interface Message {
     sender: string;
 }
 
-interface DoctorDetails {
-    name: string;
-    specialization: string;
-    address: string;
-    rating: number;
-    experience: number;
-}
-
-interface TimeSlot {
-    date: string;
-    time: string;
-    is_available: boolean;
-}
-
-interface Doctor {
-    id: string;
-    name: string;
-    available_timeslots: TimeSlot[];
-}
 
 const App: React.FC = () => {
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
+    const [pendingDetails, setPendingDetails] = useState<null | { Time: string, DocName: string, Email: string, Date: string }>(null);
     const messageContainerRef = useRef<HTMLDivElement>(null);
+
+    const askDetails = async (Time: string, DocName: string, Email: string, Date: string) => {
+        setPendingDetails({ Time, DocName, Email, Date });
+        const ask = "To book the appointment, please provide your Name, Age, and Email.";
+        setMessages(prevMessages => [
+            ...prevMessages,
+            { text: ask, sender: 'gemini' }
+        ]);
+    };
+    const isValidObjectId = (id: string) => {
+        return /^[0-9a-fA-F]{24}$/.test(id);
+    };
 
     const handleSendMessage = async () => {
         if (input.trim()) {
@@ -39,49 +33,162 @@ const App: React.FC = () => {
             setInput('');
 
             try {
-                const response = await axios.post('http://127.0.0.1:8000/gemini_data', {
-                    Text: userInput
-                });
+                if (pendingDetails) {
+                    // Send user input to backend to get user details
+                    const userDetailsResponse = await axios.post('http://127.0.0.1:8000/gemini_data', {
+                        Text: `Hey Med please extract user's name,age and email from ${userInput} and return in JSON format. format = \"user\":{\"name\":\"user_name\",\"age\":\"user_age\",\"email\":\"user_email\"}`
+                    });
 
-                const responseData = response.data;
-                if (typeof responseData === 'object' && responseData.hasOwnProperty('doctor')) {
-                    console.log(responseData);
-                    const matchResponse = await axios.post('http://127.0.0.1:8000/match_doctor', responseData);
-                    const matchedDoctor = matchResponse.data;
-                    console.log(matchedDoctor);
-                    if (matchedDoctor.length!==0){
-                        console.log(matchedDoctor);
-                        for (const doctor of matchedDoctor) {
-                            const doctorDetails = `Name: ${doctor.Name}, Specialization: ${doctor.Specialization}, Experience: ${doctor.Experience},Rating: ${doctor.Rating}, Address: ${doctor.Address.Street},Contact: ${doctor.Contact.Email}, Fees: ${doctor.Fees} `;
-                            setMessages(prevMessages => [
-                                ...prevMessages,
-                                { text: doctorDetails, sender: 'gemini' }
-                            ]);
-                            const docDetails = await axios.post('http://127.0.0.1:8000/gemini_data',{
-                                Text:`Hey Med remember these ${doctorDetails}.`
-                            });
-                            console.log(docDetails.data);
-                        }
+                    const userDetails = userDetailsResponse.data;
 
-                    }
-                    else {
-                        const nodoc = await axios.post('http://127.0.0.1:8000/gemini_data', {
-                            Text: "Hey Med return in text format that user has either given incomplete query or query is not clear and if had provide the necessary and no doctor is found in database return that you are trying to collaborate to /Specializatio/ in /Location/. Do not say that you are under development just say we  are trying to collaborate with them."
-                        });
-                        const nodocData = nodoc.data;
+                    // Check if user details are complete
+                    if (userDetails && userDetails.user && userDetails.user.name && userDetails.user.age && userDetails.user.email) {
+                        // All details are present, proceed to book the appointment
+                        const sendEmailDetails = {
+                            username: userDetails.user.name,
+                            userEmail: userDetails.user.email,
+                            doctorName: pendingDetails.DocName,
+                            doctorEmail: pendingDetails.Email,
+                            date: pendingDetails.Date,
+                            time: pendingDetails.Time
+                        };
+
+                        const sendEmailResponse = await axios.post('http://127.0.0.1:8000/send_email', sendEmailDetails);
+                        const confirm = sendEmailResponse.data;
+
                         setMessages(prevMessages => [
                             ...prevMessages,
-                            { text: nodocData, sender: 'gemini' }
+                            { text: confirm.data, sender: 'gemini' }
+                        ]);
+
+                        setPendingDetails(null);
+                    } else {
+                        // If details are incomplete, ask for the remaining details
+                        const askIncompleteDetails = "Please provide your complete details: Name, Age, and Email.";
+                        setMessages(prevMessages => [
+                            ...prevMessages,
+                            { text: askIncompleteDetails, sender: 'gemini' }
+                        ]);
+                    }
+                } else {
+                    // Handle regular chat flow if not waiting for user details
+                    const response = await axios.post('http://127.0.0.1:8000/gemini_data', {
+                        Text: userInput
+                    });
+
+                    const responseData = response.data;
+                    if (typeof responseData === 'object' && 'doctor' in responseData) {
+                        const sendValue = {
+                            'Location': responseData.doctor.Location,
+                            'Specialization': responseData.doctor.Specialization
+                        };
+                        const matchResponse = await axios.post('http://127.0.0.1:8000/match_doctor', sendValue);
+                        const matchedDoctor = matchResponse.data;
+                        if (matchedDoctor.length !== 0) {
+
+                            const doctorInfoMessage = (
+                                <div className="flex flex-col px-5 m-1">
+                                    <div className="flex w-[900px] justify-evenly">
+                                        <strong>Name:</strong><strong>Specialization:</strong><strong>Address:</strong><strong>Rating:</strong><strong>Experience:</strong><strong>Fees:</strong>
+                                    </div>
+                                    {matchedDoctor.map((doctor: any, index: number) => (
+                                        <div key={index} className="flex w-[900px] justify-evenly p-3 bg-gray-100 my-2 rounded-lg">
+                                            <div>{doctor.Name}</div>
+                                            <div>{doctor.Specialization}</div>
+                                            <div className='flex max-w-[200px]'>{doctor.Address.Street}</div>
+                                            <div>{doctor.Rating}</div>
+                                            <div>{doctor.Experience} Years</div>
+                                            <div>{doctor.Fee}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            );
+
+                            setMessages(prevMessages => [
+                                ...prevMessages,
+                                { text: doctorInfoMessage, sender: 'gemini' }
+                            ]);
+                            for (const doctor of matchedDoctor) {
+                                const doctorDetails = {
+                                    id: isValidObjectId(doctor._id) ? doctor._id : null,
+                                    name: doctor.Name,
+                                    specialization: doctor.Specialization,
+                                    experience: doctor.Experience,
+                                    rating: doctor.Rating,
+                                    address: doctor.Address.Street,
+                                    contact: doctor.Contact.Email,
+                                    fee: doctor.Fee
+                                };
+                                if (doctorDetails.id !== null) {
+                                    await axios.post('http://127.0.0.1:8000/gemini_data', {
+                                        Text: `Store doctor details: ${JSON.stringify(doctorDetails)}`
+                                    });
+                                }
+                            }
+
+                        }
+                        else {
+                            const nodoc = await axios.post('http://127.0.0.1:8000/gemini_data', {
+                                Text: "Hey Med return in text format that user has either given incomplete query or query is not clear and if had provide the necessary and no doctor is found in database return that you are trying to collaborate to /Specializatio/ in /Location/. Do not say that you are under development just say we are trying to collaborate with them."
+                            });
+                            const nodocData = nodoc.data;
+                            setMessages(prevMessages => [
+                                ...prevMessages,
+                                { text: nodocData, sender: 'gemini' }
+                            ]);
+                        }
+                    } else if (typeof responseData === 'object' && 'id' in responseData) {
+                        const bookResponse = await axios.post(`http://127.0.0.1:8000/book_appointment/${responseData.id}`);
+                        const selectedDoc = bookResponse.data;
+                        const availTimes = (
+                            <div>
+                                <p>Time Slot of Dr {selectedDoc.Name}</p>
+                                <div>
+                                    <strong>Time Slots:</strong>
+                                    {selectedDoc.TimeSlot.some((dateSlot: any) => dateSlot.TimeSlots.some((timeSlot: any) => timeSlot.isAvailable)) ?
+                                        selectedDoc.TimeSlot.map((dateSlot: any, dateIndex: any) => (
+                                            <div key={dateIndex} className='flex w-[600px] m-5'>
+                                                <p><strong>Date:</strong> {dateSlot.Date}</p>
+                                                {dateSlot.TimeSlots.some((timeSlot: any) => timeSlot.isAvailable) ?
+                                                    dateSlot.TimeSlots.map((timeSlot: any, timeIndex: any) => (
+                                                        timeSlot.isAvailable ?
+                                                            <button
+                                                                key={timeIndex}
+                                                                className={`py-2 mx-2 px-4 rounded ${timeSlot.isAvailable ? 'bg-green-500 cursor-pointer' : 'bg-red-500 cursor-default'} text-white`}
+                                                                onClick={() => timeSlot.isAvailable && askDetails(timeSlot.Time, selectedDoc.Name, selectedDoc.Contact.Email, dateSlot.Date)}
+                                                            >
+                                                                {timeSlot.Time}
+                                                            </button>
+                                                            : <button
+                                                                key={timeIndex}
+                                                                className={`py-2 mx-2 px-4 rounded ${timeSlot.isAvailable ? 'bg-green-500 cursor-pointer' : 'bg-red-500 cursor-default'} text-white`}
+                                                            >
+                                                                {timeSlot.Time}
+                                                            </button>
+                                                    ))
+                                                    : <p>No slots available</p>
+                                                }
+                                            </div>
+                                        ))
+                                        : <p>No slots available</p>
+                                    }
+                                </div>
+                            </div>
+                        );
+                        setMessages(prevMessages => [
+                            ...prevMessages,
+                            { text: availTimes, sender: 'gemini' }
+                        ]);
+                        await axios.post('http://127.0.0.1:8000/gemini_data', {
+                            Text: `Hey Med store in your context these ${availTimes}.`
+                        });
+                    } else {
+                        setMessages(prevMessages => [
+                            ...prevMessages,
+                            { text: responseData, sender: 'gemini' }
                         ]);
                     }
                 }
-                else {
-                    setMessages(prevMessages => [
-                        ...prevMessages,
-                        { text: responseData, sender: 'gemini' }
-                    ]);
-                }
-
             } catch (error) {
                 console.error('Error fetching data:', error);
             }
@@ -95,7 +202,9 @@ const App: React.FC = () => {
     }, [messages]);
 
     return (
-        <div className="flex flex-col h-screen bg-gray-200">
+        <>
+            <div className='h-[60px] justify-center text-4xl font-bold text-green-500 w-1 flex m-auto'> MedBuddy</div>
+        <div className="flex flex-col h-[850px] border border-green-400 bg-gray-200">
             <div className="flex-grow p-4 overflow-auto" ref={messageContainerRef}>
                 <div className="max-w-5xl mx-auto">
                     {messages.map((message, index) => (
@@ -121,7 +230,7 @@ const App: React.FC = () => {
                         }}
                     />
                     <button
-                        className="ml-2 p-2 bg-blue-500 text-white rounded-lg"
+                        className="ml-2 p-2 bg-green-500 font-bold text-white rounded-lg"
                         onClick={handleSendMessage}
                     >
                         Send
@@ -129,6 +238,7 @@ const App: React.FC = () => {
                 </div>
             </div>
         </div>
+        </>
     );
 };
 
