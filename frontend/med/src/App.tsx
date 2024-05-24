@@ -203,13 +203,13 @@ const App: React.FC = () => {
 
     return (
         <>
-            <div className='h-[60px] justify-center text-4xl font-bold text-green-500 w-1 flex m-auto'> MedBuddy</div>
-        <div className="flex flex-col h-[850px] border border-green-400 bg-gray-200">
+            <div className='h-[60px] justify-center text-4xl font-bold text-green-500 w-1 flex m-auto'>MedBuddy</div>
+        <div className="flex flex-col h-[850px] border rounded-t-2xl border-green-400 bg-gray-200">
             <div className="flex-grow p-4 overflow-auto" ref={messageContainerRef}>
                 <div className="max-w-5xl mx-auto">
                     {messages.map((message, index) => (
                         <div key={index} className={`flex my-2 ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                            <div className={`p-3 rounded-lg ${message.sender === 'user' ? 'bg-blue-500 text-white self-end' : 'bg-gray-100 text-black self-start'}`}>
+                            <div className={`p-3 rounded-lg ${message.sender === 'user' ? 'bg-green-200 font-bold text-green-600 self-end' : 'bg-gray-100 font bold  text-black self-start'}`}>
                                 {message.text}
                             </div>
                         </div>
@@ -220,7 +220,7 @@ const App: React.FC = () => {
                 <div className="flex items-center">
                     <input
                         type="text"
-                        className="flex-grow p-2 border rounded-lg focus:outline-none focus:border-blue-500"
+                        className="flex-grow p-2 border rounded-lg focus:outline-none focus:border-green-500"
                         value={input}
                         onChange={e => setInput(e.target.value)}
                         onKeyDown={e => {
