@@ -55,10 +55,10 @@ const App: React.FC = () => {
 
                         const sendEmailResponse = await axios.post('http://127.0.0.1:8000/send_email', sendEmailDetails);
                         const confirm = sendEmailResponse.data;
-
+                        console.log(confirm)
                         setMessages(prevMessages => [
                             ...prevMessages,
-                            { text: confirm.data, sender: 'gemini' }
+                            { text: confirm.message, sender: 'gemini' }
                         ]);
 
                         setPendingDetails(null);
