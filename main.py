@@ -118,7 +118,7 @@ async def send_email(email_data: EmailData):
         response = sg.send(message_doctor)
         sg = SendGridAPIClient(sengrid_api_key)
         response = sg.send(message_user)
-        return {"message": "Appointment Booked and Email has been sent to your email"}
+        return {"message": "Appointment Booked and Confirmation has been sent to your email"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
