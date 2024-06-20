@@ -35,7 +35,7 @@ const App: React.FC = () => {
             try {
                 if (pendingDetails) {
                     // Send user input to backend to get user details
-                    const userDetailsResponse = await axios.post('http://127.0.0.1:8000/gemini_data', {
+                    const userDetailsResponse = await axios.post('https://med-kare.onrender.com/gemini_data', {
                         Text: `Hey Med please extract user's name,age and email from ${userInput} and return in JSON format. format = \"user\":{\"name\":\"user_name\",\"age\":\"user_age\",\"email\":\"user_email\"}`
                     });
 
@@ -53,7 +53,7 @@ const App: React.FC = () => {
                             time: pendingDetails.Time
                         };
 
-                        const sendEmailResponse = await axios.post('http://127.0.0.1:8000/send_email', sendEmailDetails);
+                        const sendEmailResponse = await axios.post('https://med-kare.onrender.com/send_email', sendEmailDetails);
                         const confirm = sendEmailResponse.data;
                         console.log(confirm)
                         setMessages(prevMessages => [
@@ -72,7 +72,7 @@ const App: React.FC = () => {
                     }
                 } else {
                     // Handle regular chat flow if not waiting for user details
-                    const response = await axios.post('http://127.0.0.1:8000/gemini_data', {
+                    const response = await axios.post('https://med-kare.onrender.com/gemini_data', {
                         Text: userInput
                     });
 
@@ -82,7 +82,7 @@ const App: React.FC = () => {
                             'Location': responseData.doctor.Location,
                             'Specialization': responseData.doctor.Specialization
                         };
-                        const matchResponse = await axios.post('http://127.0.0.1:8000/match_doctor', sendValue);
+                        const matchResponse = await axios.post('https://med-kare.onrender.com/match_doctor', sendValue);
                         const matchedDoctor = matchResponse.data;
                         if (matchedDoctor.length !== 0) {
 
@@ -128,7 +128,7 @@ const App: React.FC = () => {
 
                         }
                         else {
-                            const nodoc = await axios.post('http://127.0.0.1:8000/gemini_data', {
+                            const nodoc = await axios.post('https://med-kare.onrender.com/gemini_data', {
                                 Text: "Hey Med return in text format that user has either given incomplete query or query is not clear and if had provide the necessary and no doctor is found in database return that you are trying to collaborate to /Specializatio/ in /Location/. Do not say that you are under development just say we are trying to collaborate with them."
                             });
                             const nodocData = nodoc.data;
@@ -138,7 +138,7 @@ const App: React.FC = () => {
                             ]);
                         }
                     } else if (typeof responseData === 'object' && 'id' in responseData) {
-                        const bookResponse = await axios.post(`http://127.0.0.1:8000/book_appointment/${responseData.id}`);
+                        const bookResponse = await axios.post(`https://med-kare.onrender.com/book_appointment/${responseData.id}`);
                         const selectedDoc = bookResponse.data;
                         const availTimes = (
                             <div>
@@ -179,7 +179,7 @@ const App: React.FC = () => {
                             ...prevMessages,
                             { text: availTimes, sender: 'gemini' }
                         ]);
-                        await axios.post('http://127.0.0.1:8000/gemini_data', {
+                        await axios.post('https://med-kare.onrender.com/gemini_data', {
                             Text: `Hey Med store in your context these ${availTimes}.`
                         });
                     } else {
