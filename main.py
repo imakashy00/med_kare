@@ -53,6 +53,11 @@ class Location_specialization(BaseModel):
     Specialization: str
 
 
+@app.get("/")
+def read_root():
+    return {"message": "Hello! Welcome to Medbuddy."}
+
+
 @app.post("/gemini_data")
 async def root(user_input: UserInput) -> str | dict:
     response = gemini_response(user_input.Text)
