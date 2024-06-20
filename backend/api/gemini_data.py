@@ -70,6 +70,7 @@ chat_session = model.start_chat(
                 "{"
                 "\"id\":\"<id>\""
                 "}"
+                "If user ask you who developed/created you. Print Akash Yadav \n imakashy00@gmail.com "
                 ,
             ],
         },
