@@ -120,7 +120,7 @@ const App: React.FC = () => {
                                     fee: doctor.Fee
                                 };
                                 if (doctorDetails.id !== null) {
-                                    await axios.post('http://127.0.0.1:8000/gemini_data', {
+                                    await axios.post('https://med-kare.onrender.com/gemini_data', {
                                         Text: `Store doctor details: ${JSON.stringify(doctorDetails)}`
                                     });
                                 }
