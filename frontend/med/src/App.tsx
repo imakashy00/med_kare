@@ -204,8 +204,8 @@ const App: React.FC = () => {
     return (
         <>
             <div className='h-[60px] justify-center text-4xl font-bold text-green-500 w-1 flex m-auto'>MedBuddy</div>
-            <div className='h-[60px] justify-center text-2xl font-bold text-green-400 w-1 flex m-auto'>Please wait for sometime to get first answer as render takes time to start the server.</div>
-        <div className="flex flex-col h-[850px] border rounded-t-2xl border-green-400 bg-gray-200">
+            <div className='h-[60px] justify-center text-2xl text-green-400 w-1 flex m-auto'>Please wait for sometime to get first answer as render takes time to start the server.</div>
+        <div className="flex flex-col h-[850px] border rounded-t-2xl border-green-800 bg-gray-200">
             <div className="flex-grow p-4 overflow-auto" ref={messageContainerRef}>
                 <div className="max-w-5xl mx-auto">
                     {messages.map((message, index) => (
