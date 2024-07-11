@@ -223,6 +223,7 @@ const Chat: React.FC = () => {
                     <input
                         type="text"
                         className="flex-grow p-2 border border-green-300 rounded-lg focus:outline-none focus:border-green-500"
+                        placeholder = "Please wait as first reply takes time due to host's server starting policy..."
                         value={input}
                         onChange={e => setInput(e.target.value)}
                         onKeyDown={e => {
